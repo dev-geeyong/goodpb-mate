@@ -57,12 +57,37 @@
 
 ### 2025-11-11
 - [x] 프로젝트 초기 설정 완료
-- [x] CLAUDE.md 작성 완료
-- [ ] 프로젝트 구조 설계
-- [ ] 투자자 유형 선택 화면 구현
-- [ ] 서비스 선택 화면 구현
-- [ ] 채권 계산기 화면 구현
-- [ ] 증권사 선택 화면 구현
+- [x] CLAUDE.md, AGENTS.md, DEVELOPMENT.md 작성 완료
+- [x] 프로젝트 구조 설계 (screens, widgets, models, services)
+- [x] SharedPreferences 기반 로컬 저장소 서비스 구현
+- [x] 투자자 유형 선택 화면 구현
+- [x] 서비스 선택 화면 구현
+- [x] 채권 계산기 화면 구현 (UI만, 계산 로직은 추후 구현)
+- [x] 증권사 선택 화면 구현 (다중 선택 가능)
+- [x] SelectionButton 공통 위젯 구현
+- [x] 모델 클래스 구현 (InvestorType, ServiceType, SecuritiesCompany)
+- [x] Git 커밋 및 푸시 완료
+
+## 구현된 파일 구조
+
+```
+lib/
+  main.dart                           # 앱 진입점
+  src/
+    models/
+      investor_type.dart              # 투자자 유형 enum
+      service_type.dart               # 서비스 유형 enum
+      securities_company.dart         # 증권사 정보 모델
+    screens/
+      investor_type_screen.dart       # 투자자 유형 선택 화면
+      service_selection_screen.dart   # 서비스 선택 화면
+      bond_calculator_screen.dart     # 채권 계산기 화면
+      securities_selection_screen.dart # 증권사 선택 화면
+    widgets/
+      selection_button.dart           # 공통 선택 버튼 위젯
+    services/
+      storage_service.dart            # 로컬 저장소 서비스
+```
 
 ## 디자인 가이드
 
