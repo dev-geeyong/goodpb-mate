@@ -61,38 +61,48 @@ class _SecuritiesSelectionScreenState extends State<SecuritiesSelectionScreen> {
         children: [
           Expanded(
             child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 타이틀
-                    const Text(
-                      '증권사를 선택해주세요',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 타이틀 섹션 (좌우 패딩 있음)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 24),
+                        const Text(
+                          '증권사를 선택해주세요',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '거래 중인 증권사를 선택하시면\n더 정확한 정보를 제공해드릴 수 있어요',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey.shade600,
+                            height: 1.5,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '거래 중인 증권사를 선택하시면\n더 정확한 정보를 제공해드릴 수 있어요',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade600,
-                        height: 1.5,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
+                  ),
+                  const SizedBox(height: 24),
 
-                    // 선택된 증권사 표시 영역
-                    _buildSelectedSecuritiesSection(),
-                    const SizedBox(height: 24),
+                  // 선택된 증권사 표시 영역 (좌우 패딩 없음, 전체 너비 사용)
+                  _buildSelectedSecuritiesSection(),
+                  const SizedBox(height: 24),
 
-                    // 증권사 그리드
-                    _buildSecuritiesGrid(),
-                  ],
-                ),
+                  // 증권사 그리드 (좌우 패딩 있음)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: _buildSecuritiesGrid(),
+                  ),
+                  const SizedBox(height: 24),
+                ],
               ),
             ),
           ),
@@ -129,11 +139,13 @@ class _SecuritiesSelectionScreenState extends State<SecuritiesSelectionScreen> {
 
   Widget _buildSelectedSecuritiesSection() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       decoration: BoxDecoration(
         color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border(
+          top: BorderSide(color: Colors.grey.shade200),
+          bottom: BorderSide(color: Colors.grey.shade200),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
