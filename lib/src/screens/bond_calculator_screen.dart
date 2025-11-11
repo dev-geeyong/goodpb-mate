@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../theme/app_theme.dart';
+
 /// 알파본드 채권 계산기 화면
 class BondCalculatorScreen extends StatefulWidget {
   const BondCalculatorScreen({super.key});
@@ -35,116 +37,116 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: const Text(
-          '계산기',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        title: const Text('계산기'),
       ),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 채권 검색 버튼
-              InkWell(
-                onTap: () {
-                  // TODO: 채권 검색 기능 구현
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.search, color: Colors.grey.shade600),
-                      const SizedBox(width: 12),
-                      Text(
-                        '채권명을 입력하세요',
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 15,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // 매수 금액 입력
-              _buildInputField(
-                label: '매수 금액(원)',
-                controller: _purchaseAmountController,
-              ),
-              const SizedBox(height: 20),
-
-              // 매수 단가 입력
-              _buildInputField(
-                label: '매수 단가(원)',
-                controller: _purchasePriceController,
-              ),
-              const SizedBox(height: 20),
-
-              // 종합소득 세율 드롭다운
-              const Text(
-                '종합소득 세율',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSectionHeader(
+              context,
+              title: '채권 검색',
+              subtitle: '조회하고 싶은 채권을 검색하면 기본 값이 자동으로 채워집니다.',
+            ),
+            InkWell(
+              onTap: () {
+                // TODO: 채권 검색 기능 구현
+              },
+              borderRadius: BorderRadius.circular(18),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade300),
-                  borderRadius: BorderRadius.circular(8),
+                  color: AppColors.cardElevated,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: AppColors.border),
                 ),
-                child: DropdownButton<String>(
-                  value: _selectedTaxRate,
-                  isExpanded: true,
-                  underline: const SizedBox(),
-                  items: _taxRates.map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                  onChanged: (String? newValue) {
-                    if (newValue != null) {
-                      setState(() {
-                        _selectedTaxRate = newValue;
-                      });
-                    }
-                  },
+                child: Row(
+                  children: [
+                    Icon(Icons.search, color: AppColors.textSecondary),
+                    const SizedBox(width: 12),
+                    Text(
+                      '채권명을 입력하세요',
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                    const Spacer(),
+                    Text(
+                      '검색',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: AppColors.primarySoft,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 32),
-
-              // 계산 결과
-              _buildResultSection(),
-            ],
-          ),
+            ),
+            const SizedBox(height: 32),
+            _buildSectionHeader(
+              context,
+              title: '투자 정보',
+              subtitle: '금액과 단가를 입력하면 실투자금과 예상 수익을 바로 비교할 수 있어요.',
+            ),
+            _buildInputField(
+              label: '매수 금액(원)',
+              controller: _purchaseAmountController,
+              hintText: '0',
+            ),
+            const SizedBox(height: 20),
+            _buildInputField(
+              label: '매수 단가(원)',
+              controller: _purchasePriceController,
+              hintText: '0',
+            ),
+            const SizedBox(height: 20),
+            Text(
+              '종합소득 세율',
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: AppColors.cardElevated,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: DropdownButton<String>(
+                value: _selectedTaxRate,
+                isExpanded: true,
+                underline: const SizedBox(),
+                dropdownColor: AppColors.cardElevated,
+                icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white70),
+                style: theme.textTheme.bodyLarge,
+                items: _taxRates.map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  if (newValue != null) {
+                    setState(() {
+                      _selectedTaxRate = newValue;
+                    });
+                  }
+                },
+              ),
+            ),
+            const SizedBox(height: 32),
+            _buildSectionHeader(
+              context,
+              title: '계산 결과',
+              subtitle: '아래 값은 시뮬레이션 결과입니다. 실제 수익률은 시장 상황에 따라 변동될 수 있습니다.',
+            ),
+            _buildResultSection(theme),
+          ],
         ),
       ),
     );
@@ -153,79 +155,72 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
   Widget _buildInputField({
     required String label,
     required TextEditingController controller,
+    String? hintText,
   }) {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: const TextStyle(
-            fontSize: 15,
+          style: theme.textTheme.bodySmall?.copyWith(
             fontWeight: FontWeight.w600,
-            color: Colors.black87,
+            color: AppColors.textSecondary,
           ),
         ),
         const SizedBox(height: 8),
         TextField(
           controller: controller,
+          style: theme.textTheme.bodyLarge,
           keyboardType: TextInputType.number,
           inputFormatters: [
             FilteringTextInputFormatter.digitsOnly,
           ],
           decoration: InputDecoration(
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Colors.blue, width: 2),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 14,
-            ),
+            hintText: hintText,
+            suffixText: '원',
+            suffixStyle: theme.textTheme.bodySmall,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildResultSection() {
+  Widget _buildResultSection(ThemeData theme) {
+    final rows = <Map<String, String>>[
+      {'label': '실 투자금', 'value': '0원'},
+      {'label': '세전 수익', 'value': '0원'},
+      {'label': '세금', 'value': '0원'},
+      {'label': '세후 이자', 'value': '0원'},
+      {'label': '연 수익률(세전)', 'value': '0.00%'},
+      {'label': '연 수익률(세후)', 'value': '0.00%'},
+      {'label': '총 지급금액(세후)', 'value': '0원'},
+    ];
+
     return Container(
-      padding: const EdgeInsets.all(20),
+      width: double.infinity,
+      padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.cardElevated,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            '계산 결과',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+          ...rows.map(
+            (row) => _buildResultRow(
+              row['label']!,
+              row['value']!,
+              theme: theme,
             ),
           ),
-          const SizedBox(height: 20),
-          _buildResultRow('실 투자금', '0원'),
-          _buildResultRow('세전 수익', '0원'),
-          _buildResultRow('세금', '0원'),
-          _buildResultRow('세후 이자', '0원'),
-          _buildResultRow('연 수익률(세전)', '0.00%'),
-          _buildResultRow('연 수익률(세후)', '0.00%'),
-          _buildResultRow('총 지급금액(세후)', '0원'),
-          const SizedBox(height: 20),
+          const SizedBox(height: 12),
           const Divider(),
           const SizedBox(height: 12),
           _buildResultRow(
             '은행예금 환산수익률',
             '0.00%',
+            theme: theme,
             isHighlight: true,
           ),
         ],
@@ -237,6 +232,7 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
     String label,
     String value, {
     bool isHighlight = false,
+    required ThemeData theme,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
@@ -245,19 +241,39 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
         children: [
           Text(
             label,
-            style: TextStyle(
-              fontSize: 14,
-              color: isHighlight ? Colors.blue.shade700 : Colors.grey.shade700,
-              fontWeight: isHighlight ? FontWeight.w600 : FontWeight.normal,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: isHighlight ? AppColors.accent : AppColors.textSecondary,
+              fontWeight: isHighlight ? FontWeight.w700 : FontWeight.w500,
             ),
           ),
           Text(
             value,
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: isHighlight ? Colors.blue.shade700 : Colors.black87,
+            style: theme.textTheme.bodyLarge?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: isHighlight ? AppColors.accent : Colors.white,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+  }) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: theme.textTheme.titleLarge),
+          const SizedBox(height: 6),
+          Text(
+            subtitle,
+            style: theme.textTheme.bodySmall,
           ),
         ],
       ),

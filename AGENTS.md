@@ -1,20 +1,20 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-The Flutter app lives in `lib/`, with `lib/main.dart` bootstrapping widgets and feature code organized under `lib/src` as the app grows. Platform runners are kept in `android/`, `ios/`, `macos/`, `windows/`, `linux/`, and `web/`; update them only when modifying native integrations. Reusable assets (fonts, images, L10N files) should be placed in an `assets/` subtree and registered inside `pubspec.yaml`. Unit and widget tests reside in `test/`, mirroring the `lib/` hierarchy (e.g., `lib/widgets/foo.dart` → `test/widgets/foo_test.dart`).
+`lib/main.dart` boots the Flutter experience and delegates features into `lib/src`, which is split into `models/` (domain objects), `services/` (API and calculation helpers), `widgets/` (reusable UI), and `screens/` (top-level flows such as the securities selector). Assets that need bundling belong in `assets/` and must be whitelisted in `pubspec.yaml`. Platform-specific runners live in `android/`, `ios/`, `macos/`, `linux/`, `windows/`, and `web/`; avoid touching them unless you are wiring native plugins. Tests mirror the library layout under `test/` so every Dart file has an obvious test counterpart.
 
 ## Build, Test, and Development Commands
-- `flutter pub get`: syncs dependencies; run after editing `pubspec.yaml`.
-- `flutter analyze`: enforces Dart lints from `analysis_options.yaml`.
-- `flutter test --coverage`: runs all unit/widget tests and produces lcov data in `coverage/`.
-- `flutter run -d chrome` or `flutter run -d ios`: hot-reloads the app on the chosen device/emulator.
-- `flutter build apk --release`: produces Android release artifacts; mirror with `flutter build ios --release` when needed.
+- `flutter pub get` — sync Dart dependencies after editing `pubspec.yaml`.
+- `flutter analyze` — enforce the rules defined in `analysis_options.yaml`.
+- `flutter test --coverage` — run unit and widget suites; produces `coverage/lcov.info`.
+- `flutter run -d chrome` (web) / `flutter run -d ios` (simulator) — launch the app with hot reload.
+- `flutter build apk --release` and `flutter build ios --release` — create store-ready bundles.
 
 ## Coding Style & Naming Conventions
-Use Dart's default 2-space indentation and keep lines under 100 columns. Prefer `final`/`const` for immutable values, extract widgets for readability, and name classes/widgets using PascalCase (`AccountSummaryCard`). Files and directories use snake_case (`account_summary_card.dart`). Before committing, format with `dart format lib test` (or `flutter format`) and fix issues flagged by `flutter analyze`.
+Use Dart’s two-space indentation, keep lines ≤ 100 chars, and prefer `final`/`const` for immutable state. Classes, enums, and widgets use PascalCase (`BondListScreen`), while files and directories stay snake_case (`bond_list_screen.dart`). Format changes with `dart format lib test` before committing, and address all analyzer warnings so CI stays green.
 
 ## Testing Guidelines
-Every new widget or business rule needs a matching `*_test.dart`. Favor descriptive `group` and `test` names (`group('LoginForm', ...)`) and use `pumpWidget`/`pumpAndSettle` helpers for UI flows. Critical logic should include golden tests or integration coverage when feasible. Keep coverage steady by ensuring new code paths have assertions; run `flutter test --coverage` locally before pushing.
+Co-locate tests with their feature area (`lib/src/widgets/foo.dart` → `test/widgets/foo_test.dart`). Name files `*_test.dart`, use descriptive `group` labels, and rely on `pumpWidget`/`pumpAndSettle` helpers for UI flows. Maintain coverage parity for any new business rule, and regenerate `coverage/lcov.info` when updating snapshots or adding golden tests.
 
 ## Commit & Pull Request Guidelines
-Commits should be small, imperative, and scoped (e.g., `Add onboarding flow skeleton`). Reference tickets in the footer when available. Pull requests must describe the change, outline test evidence (`flutter analyze`, `flutter test`), and attach screenshots or screen recordings for UI updates. Request at least one reviewer, and respond to feedback with follow-up commits rather than force-pushes to preserve context.
+History shows concise, imperative messages (`Add bond list screen`). Follow that style, keep commits scoped, and reference ticket IDs in the footer when relevant. Pull requests must summarize intent, list verification steps (`flutter analyze`, `flutter test --coverage`), and attach screenshots for UI changes. Request at least one reviewer, respond to feedback with follow-up commits, and avoid force-pushing once reviews begin.

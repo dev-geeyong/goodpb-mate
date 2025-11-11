@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/investor_type.dart';
 import '../services/storage_service.dart';
+import '../theme/app_theme.dart';
 import '../widgets/selection_button.dart';
 import 'service_selection_screen.dart';
 
@@ -28,36 +29,42 @@ class InvestorTypeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.white,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 40),
-              // 상단 타이틀
-              const Text(
+              const SizedBox(height: 24),
+              Text(
                 '당신은 어떤\n투자자신가요?',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  height: 1.3,
+                style: theme.textTheme.headlineMedium,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                '프로필을 기반으로 맞춤형 채권 수익률 정보를 추천해 드려요.',
+                style: theme.textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 32),
+              Expanded(
+                child: ListView.separated(
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: InvestorType.values.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 16),
+                  itemBuilder: (context, index) {
+                    final type = InvestorType.values[index];
+                    return SelectionButton(
+                      title: type.title,
+                      subtitle: type.subtitle,
+                      accentColor: AppColors.primary,
+                      onTap: () => _onInvestorTypeSelected(context, type),
+                    );
+                  },
                 ),
               ),
-              const SizedBox(height: 40),
-              // 투자자 유형 버튼들
-              ...InvestorType.values.map((type) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 16.0),
-                  child: SelectionButton(
-                    title: type.title,
-                    subtitle: type.subtitle,
-                    onTap: () => _onInvestorTypeSelected(context, type),
-                  ),
-                );
-              }),
             ],
           ),
         ),

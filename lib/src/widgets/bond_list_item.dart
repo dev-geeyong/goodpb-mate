@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 import '../models/bond.dart';
+import '../theme/app_theme.dart';
 
 /// 채권 리스트 아이템 위젯
 class BondListItem extends StatelessWidget {
@@ -16,98 +18,97 @@ class BondListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('yyyy.MM.dd');
+    final theme = Theme.of(context);
 
     return InkWell(
+      borderRadius: BorderRadius.circular(20),
       onTap: onTap,
       child: Container(
-        width: 272,
-        height: 94,
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade300),
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.border),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 왼쪽: 증권사 로고
             Container(
-              width: 40,
-              height: 40,
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
-                color: Colors.grey.shade200,
                 shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [AppColors.primary, AppColors.primarySoft],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
               ),
-              child: Icon(
-                Icons.account_balance,
-                size: 24,
-                color: Colors.grey.shade600,
-              ),
+              child: const Icon(Icons.account_balance, color: Colors.white),
             ),
-            const SizedBox(width: 12),
-
-            // 중앙: 채권 정보
+            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // 채권 이름
                   Text(
                     bond.name,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  // 만기일
-                  Text(
-                    '만기 ${dateFormat.format(bond.maturityDate)}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade600,
-                    ),
-                  ),
-                  // 하단 정보
-                  Text(
-                    '신용등급: ${bond.creditRating} | 판매회사: ${bond.seller}',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Colors.grey.shade600,
-                    ),
+                    style: theme.textTheme.titleLarge?.copyWith(fontSize: 18),
                     overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: [
+                      _buildPill('만기 ${dateFormat.format(bond.maturityDate)}'),
+                      _buildPill('신용등급 ${bond.creditRating}'),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    '판매사 ${bond.seller}',
+                    style: theme.textTheme.bodySmall,
                   ),
                 ],
               ),
             ),
-
-            // 오른쪽: 이율 정보
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // 이율
                 Text(
                   '${bond.interestRate.toStringAsFixed(2)}%',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue,
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontSize: 20,
+                    color: AppColors.accent,
                   ),
                 ),
-                // 표면이율
+                const SizedBox(height: 4),
                 Text(
-                  '표면이율:${bond.faceInterestRate.toStringAsFixed(3)}%',
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: Colors.grey.shade600,
-                  ),
+                  '표면 ${bond.faceInterestRate.toStringAsFixed(3)}%',
+                  style: theme.textTheme.bodySmall,
                 ),
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPill(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.cardElevated,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 12,
+          color: AppColors.textSecondary,
         ),
       ),
     );

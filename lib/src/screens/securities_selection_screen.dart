@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/securities_company.dart';
 import '../services/storage_service.dart';
+import '../theme/app_theme.dart';
 import 'bond_list_screen.dart';
 
 /// 증권사 선택 화면
@@ -52,13 +53,12 @@ class _SecuritiesSelectionScreenState extends State<SecuritiesSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -76,21 +76,14 @@ class _SecuritiesSelectionScreenState extends State<SecuritiesSelectionScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 24),
-                        const Text(
+                        Text(
                           '증권사를 선택해주세요',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: theme.textTheme.headlineMedium,
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          '거래 중인 증권사를 선택하시면\n더 정확한 정보를 제공해드릴 수 있어요',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey.shade600,
-                            height: 1.5,
-                          ),
+                          '거래 중인 증권사를 선택하면 맞춤 추천과 필터가 자동으로 적용됩니다.',
+                          style: theme.textTheme.bodySmall,
                         ),
                       ],
                     ),
@@ -119,20 +112,8 @@ class _SecuritiesSelectionScreenState extends State<SecuritiesSelectionScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: _onComplete,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text(
-                  '선택완료',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+                child: Text(
+                  _selectedSecurities.isEmpty ? '건너뛰고 계속' : '선택완료',
                 ),
               ),
             ),
@@ -147,10 +128,10 @@ class _SecuritiesSelectionScreenState extends State<SecuritiesSelectionScreen> {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: AppColors.cardElevated,
         border: Border(
-          top: BorderSide(color: Colors.grey.shade200),
-          bottom: BorderSide(color: Colors.grey.shade200),
+          top: const BorderSide(color: AppColors.border),
+          bottom: BorderSide(color: AppColors.border),
         ),
       ),
       child: Column(
@@ -158,9 +139,9 @@ class _SecuritiesSelectionScreenState extends State<SecuritiesSelectionScreen> {
         children: [
           Text(
             '선택한 증권사',
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 13,
-              color: Colors.grey.shade600,
+              color: AppColors.textSecondary,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -172,60 +153,64 @@ class _SecuritiesSelectionScreenState extends State<SecuritiesSelectionScreen> {
               runSpacing: 8,
               alignment: WrapAlignment.start,
               children: [
-              if (_selectedSecurities.isEmpty)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.grey.shade300),
-                  ),
-                  child: const Text(
-                    '없음 - 모든 채권을 볼래요',
-                    style: TextStyle(fontSize: 14),
-                  ),
-                )
-              else
-                ..._selectedSecurities.map((id) {
-                  final company = SecuritiesCompany.samples.firstWhere(
-                    (s) => s.id == id,
-                  );
-                  return Container(
+                if (_selectedSecurities.isEmpty)
+                  Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
+                      horizontal: 16,
+                      vertical: 10,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
+                      color: AppColors.card,
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.blue.shade200),
+                      border: Border.all(color: AppColors.border),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          company.name,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.blue.shade700,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        GestureDetector(
-                          onTap: () => _toggleSecurities(id),
-                          child: Icon(
-                            Icons.close,
-                            size: 16,
-                            color: Colors.blue.shade700,
-                          ),
-                        ),
-                      ],
+                    child: const Text(
+                      '없음 - 모든 채권을 볼래요',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
-                  );
-                }),
+                  )
+                else
+                  ..._selectedSecurities.map((id) {
+                    final company = SecuritiesCompany.samples.firstWhere(
+                      (s) => s.id == id,
+                    );
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppColors.primary),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            company.name,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          GestureDetector(
+                            onTap: () => _toggleSecurities(id),
+                            child: const Icon(
+                              Icons.close,
+                              size: 16,
+                              color: Colors.white70,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
               ],
             ),
           ),
@@ -251,40 +236,41 @@ class _SecuritiesSelectionScreenState extends State<SecuritiesSelectionScreen> {
 
         return GestureDetector(
           onTap: () => _toggleSecurities(company.id),
-          child: Container(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
             decoration: BoxDecoration(
-              color: isSelected ? Colors.blue.shade50 : Colors.white,
-              borderRadius: BorderRadius.circular(12),
+              color: isSelected ? AppColors.cardElevated : AppColors.card,
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: isSelected ? Colors.blue : Colors.grey.shade300,
+                color: isSelected ? AppColors.primary : AppColors.border,
                 width: isSelected ? 2 : 1,
               ),
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // 증권사 로고 (플레이스홀더)
                 Container(
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
+                    color: isSelected
+                        ? AppColors.primary.withOpacity(0.2)
+                        : AppColors.border,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.account_balance,
-                    size: 28,
-                    color: Colors.grey.shade600,
+                    size: 24,
+                    color: isSelected ? AppColors.primary : Colors.white70,
                   ),
                 ),
-                const SizedBox(height: 8),
-                // 증권사 이름
+                const SizedBox(height: 10),
                 Text(
                   company.name,
                   style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    color: isSelected ? Colors.blue.shade700 : Colors.black87,
+                    fontSize: 13,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    color: Colors.white,
                   ),
                   textAlign: TextAlign.center,
                 ),
