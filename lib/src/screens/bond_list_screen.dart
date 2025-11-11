@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/bond.dart';
 import '../widgets/bond_list_item.dart';
+import 'bond_calculator_screen.dart';
 
 /// 채권 목록 화면
 class BondListScreen extends StatefulWidget {
@@ -182,7 +183,11 @@ class _BondListScreenState extends State<BondListScreen> {
                 return BondListItem(
                   bond: bond,
                   onTap: () {
-                    // TODO: 채권 상세 화면으로 이동
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const BondCalculatorScreen(),
+                      ),
+                    );
                   },
                 );
               },

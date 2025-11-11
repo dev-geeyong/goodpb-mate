@@ -144,6 +144,7 @@ class _SecuritiesSelectionScreenState extends State<SecuritiesSelectionScreen> {
 
   Widget _buildSelectedSecuritiesSection() {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       decoration: BoxDecoration(
         color: Colors.grey.shade50,
@@ -164,10 +165,13 @@ class _SecuritiesSelectionScreenState extends State<SecuritiesSelectionScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
+          SizedBox(
+            width: double.infinity,
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              alignment: WrapAlignment.start,
+              children: [
               if (_selectedSecurities.isEmpty)
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -222,7 +226,8 @@ class _SecuritiesSelectionScreenState extends State<SecuritiesSelectionScreen> {
                     ),
                   );
                 }),
-            ],
+              ],
+            ),
           ),
         ],
       ),
