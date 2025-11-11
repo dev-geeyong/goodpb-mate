@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/securities_company.dart';
 import '../services/storage_service.dart';
+import 'bond_list_screen.dart';
 
 /// 증권사 선택 화면
 class SecuritiesSelectionScreen extends StatefulWidget {
@@ -41,7 +42,11 @@ class _SecuritiesSelectionScreenState extends State<SecuritiesSelectionScreen> {
   Future<void> _onComplete() async {
     await _storageService.saveSelectedSecurities(_selectedSecurities);
     if (mounted) {
-      Navigator.of(context).pop();
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => const BondListScreen(),
+        ),
+      );
     }
   }
 
