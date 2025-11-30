@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../models/bond.dart';
 import '../theme/app_theme.dart';
 import '../widgets/bond_list_item.dart';
+import 'bond_calculator_screen.dart';
 
 /// 채권 목록 화면
 class BondListScreen extends StatefulWidget {
@@ -256,7 +257,13 @@ class _BondListScreenState extends State<BondListScreen> {
                   child: BondListItem(
                     bond: bond,
                     onTap: () {
-                      Navigator.of(context).pop(bond);
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                          builder: (context) => BondCalculatorScreen(
+                            selectedBond: bond,
+                          ),
+                        ),
+                      );
                     },
                   ),
                 );
