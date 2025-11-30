@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../theme/app_theme.dart';
+import 'bond_list_screen.dart';
 
 /// 알파본드 채권 계산기 화면
 class BondCalculatorScreen extends StatefulWidget {
@@ -55,7 +56,11 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
             ),
             InkWell(
               onTap: () {
-                // TODO: 채권 검색 기능 구현
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const BondListScreen(),
+                  ),
+                );
               },
               borderRadius: BorderRadius.circular(18),
               child: Container(
