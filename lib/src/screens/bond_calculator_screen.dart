@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../models/bond.dart';
 import '../theme/app_theme.dart';
 import 'bond_list_screen.dart';
 
 /// 알파본드 채권 계산기 화면
 class BondCalculatorScreen extends StatefulWidget {
-  const BondCalculatorScreen({super.key});
+  const BondCalculatorScreen({super.key, this.selectedBond});
+
+  final Bond? selectedBond;
 
   @override
   State<BondCalculatorScreen> createState() => _BondCalculatorScreenState();
@@ -18,6 +21,7 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
   final TextEditingController _purchasePriceController =
       TextEditingController();
   String _selectedTaxRate = '기본(15.4%)';
+  Bond? _selectedBond;
 
   final List<String> _taxRates = [
     '기본(15.4%)',
@@ -28,6 +32,12 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
     '41.8%',
     '49.5%',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedBond = widget.selectedBond;
+  }
 
   @override
   void dispose() {
@@ -55,12 +65,17 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
               subtitle: '조회하고 싶은 채권을 검색하면 기본 값이 자동으로 채워집니다.',
             ),
             InkWell(
-              onTap: () {
-                Navigator.of(context).push(
+              onTap: () async {
+                final selectedBond = await Navigator.of(context).push<Bond>(
                   MaterialPageRoute(
                     builder: (context) => const BondListScreen(),
                   ),
                 );
+                if (selectedBond != null) {
+                  setState(() {
+                    _selectedBond = selectedBond;
+                  });
+                }
               },
               borderRadius: BorderRadius.circular(18),
               child: Container(
@@ -74,11 +89,16 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
                   children: [
                     Icon(Icons.search, color: AppColors.textSecondary),
                     const SizedBox(width: 12),
-                    Text(
-                      '채권명을 입력하세요',
-                      style: theme.textTheme.bodyMedium,
+                    Expanded(
+                      child: Text(
+                        _selectedBond?.name ?? '채권명을 입력하세요',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: _selectedBond != null
+                              ? Colors.white
+                              : AppColors.textSecondary,
+                        ),
+                      ),
                     ),
-                    const Spacer(),
                     Text(
                       '검색',
                       style: theme.textTheme.bodySmall?.copyWith(

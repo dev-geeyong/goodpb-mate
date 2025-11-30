@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import '../models/bond.dart';
 import '../theme/app_theme.dart';
 import '../widgets/bond_list_item.dart';
-import 'bond_calculator_screen.dart';
 
 /// 채권 목록 화면
 class BondListScreen extends StatefulWidget {
@@ -17,6 +16,8 @@ class BondListScreen extends StatefulWidget {
 class _BondListScreenState extends State<BondListScreen> {
   DateTimeRange? _selectedDateRange;
   String _selectedCreditRating = '전체';
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   final List<String> _creditRatings = [
     '전체',
@@ -30,6 +31,27 @@ class _BondListScreenState extends State<BondListScreen> {
     'BBB+',
     'BBB',
   ];
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  List<Bond> get _filteredBonds {
+    return Bond.mockData.where((bond) {
+      final matchesSearch = _searchQuery.isEmpty ||
+          bond.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          bond.securitiesCompanyName
+              .toLowerCase()
+              .contains(_searchQuery.toLowerCase());
+
+      final matchesCreditRating = _selectedCreditRating == '전체' ||
+          bond.creditRating == _selectedCreditRating;
+
+      return matchesSearch && matchesCreditRating;
+    }).toList();
+  }
 
   Future<void> _selectDateRange() async {
     final DateTimeRange? picked = await showDateRangePicker(
@@ -105,6 +127,31 @@ class _BondListScreenState extends State<BondListScreen> {
                     style: theme.textTheme.bodySmall,
                   ),
                   const SizedBox(height: 20),
+                  TextField(
+                    controller: _searchController,
+                    style: theme.textTheme.bodyMedium,
+                    decoration: InputDecoration(
+                      hintText: '채권명 또는 증권사 검색',
+                      prefixIcon: Icon(Icons.search, color: AppColors.textSecondary),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: Icon(Icons.clear, color: AppColors.textSecondary),
+                              onPressed: () {
+                                setState(() {
+                                  _searchController.clear();
+                                  _searchQuery = '';
+                                });
+                              },
+                            )
+                          : null,
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        _searchQuery = value;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16),
                   Row(
                     children: [
                       Expanded(
@@ -190,23 +237,31 @@ class _BondListScreenState extends State<BondListScreen> {
           SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, index) {
-                final bond = Bond.mockData[index];
-                final isLast = index == Bond.mockData.length - 1;
+                final filteredBonds = _filteredBonds;
+                if (filteredBonds.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.all(48.0),
+                    child: Center(
+                      child: Text(
+                        '검색 결과가 없습니다',
+                        style: TextStyle(color: Colors.white54),
+                      ),
+                    ),
+                  );
+                }
+                final bond = filteredBonds[index];
+                final isLast = index == filteredBonds.length - 1;
                 return Padding(
                   padding: EdgeInsets.fromLTRB(24, 0, 24, isLast ? 24 : 12),
                   child: BondListItem(
                     bond: bond,
                     onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const BondCalculatorScreen(),
-                        ),
-                      );
+                      Navigator.of(context).pop(bond);
                     },
                   ),
                 );
               },
-              childCount: Bond.mockData.length,
+              childCount: _filteredBonds.isEmpty ? 1 : _filteredBonds.length,
             ),
           ),
         ],
