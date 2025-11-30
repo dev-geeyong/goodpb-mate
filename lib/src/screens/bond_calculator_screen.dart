@@ -23,6 +23,16 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
   String _selectedTaxRate = '기본(15.4%)';
   Bond? _selectedBond;
 
+  // 계산 결과
+  double _actualInvestment = 0;
+  double _preTaxProfit = 0;
+  double _tax = 0;
+  double _afterTaxInterest = 0;
+  double _preTaxYield = 0;
+  double _afterTaxYield = 0;
+  double _totalPaymentAfterTax = 0;
+  double _bankEquivalentYield = 0;
+
   final List<String> _taxRates = [
     '기본(15.4%)',
     '6.6%',
@@ -37,6 +47,72 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
   void initState() {
     super.initState();
     _selectedBond = widget.selectedBond;
+  }
+
+  double _getTaxRateValue() {
+    switch (_selectedTaxRate) {
+      case '기본(15.4%)':
+        return 0.154;
+      case '6.6%':
+        return 0.066;
+      case '16.5%':
+        return 0.165;
+      case '26.4%':
+        return 0.264;
+      case '38.5%':
+        return 0.385;
+      case '41.8%':
+        return 0.418;
+      case '49.5%':
+        return 0.495;
+      default:
+        return 0.154;
+    }
+  }
+
+  void _calculate() {
+    final purchaseAmount = double.tryParse(_purchaseAmountController.text) ?? 0;
+    final purchasePrice = double.tryParse(_purchasePriceController.text) ?? 0;
+
+    if (purchaseAmount == 0 || purchasePrice == 0 || _selectedBond == null) {
+      return;
+    }
+
+    final taxRate = _getTaxRateValue();
+    final faceValue = 10000.0; // 액면가
+    final quantity = purchaseAmount / faceValue; // 매수 수량
+
+    // 실 투자금 = 매수금액 * 매수단가 / 100
+    _actualInvestment = quantity * purchasePrice;
+
+    // 세전 수익 = 매수금액 - 실투자금
+    _preTaxProfit = purchaseAmount - _actualInvestment;
+
+    // 세금 = 세전수익 * 세율
+    _tax = _preTaxProfit * taxRate;
+
+    // 세후 이자 = 세전수익 - 세금
+    _afterTaxInterest = _preTaxProfit - _tax;
+
+    // 만기일까지의 일수 계산
+    final daysToMaturity = _selectedBond!.maturityDate.difference(DateTime.now()).inDays;
+    final yearsToMaturity = daysToMaturity / 365.0;
+
+    if (yearsToMaturity > 0) {
+      // 연 수익률(세전) = (세전수익 / 실투자금) / 년수 * 100
+      _preTaxYield = (_preTaxProfit / _actualInvestment) / yearsToMaturity * 100;
+
+      // 연 수익률(세후) = (세후이자 / 실투자금) / 년수 * 100
+      _afterTaxYield = (_afterTaxInterest / _actualInvestment) / yearsToMaturity * 100;
+
+      // 은행예금 환산수익률 = 세후 연수익률 / (1 - 0.154)
+      _bankEquivalentYield = _afterTaxYield / (1 - 0.154);
+    }
+
+    // 총 지급금액(세후) = 실투자금 + 세후이자
+    _totalPaymentAfterTax = _actualInvestment + _afterTaxInterest;
+
+    setState(() {});
   }
 
   @override
@@ -164,6 +240,29 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
                 },
               ),
             ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: ElevatedButton(
+                onPressed: _calculate,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 0,
+                ),
+                child: Text(
+                  '계산하기',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
             const SizedBox(height: 32),
             _buildSectionHeader(
               context,
@@ -211,15 +310,26 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
     );
   }
 
+  String _formatCurrency(double value) {
+    return '${value.toStringAsFixed(0).replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]},',
+        )}원';
+  }
+
+  String _formatPercent(double value) {
+    return '${value.toStringAsFixed(2)}%';
+  }
+
   Widget _buildResultSection(ThemeData theme) {
     final rows = <Map<String, String>>[
-      {'label': '실 투자금', 'value': '0원'},
-      {'label': '세전 수익', 'value': '0원'},
-      {'label': '세금', 'value': '0원'},
-      {'label': '세후 이자', 'value': '0원'},
-      {'label': '연 수익률(세전)', 'value': '0.00%'},
-      {'label': '연 수익률(세후)', 'value': '0.00%'},
-      {'label': '총 지급금액(세후)', 'value': '0원'},
+      {'label': '실 투자금', 'value': _formatCurrency(_actualInvestment)},
+      {'label': '세전 수익', 'value': _formatCurrency(_preTaxProfit)},
+      {'label': '세금', 'value': _formatCurrency(_tax)},
+      {'label': '세후 이자', 'value': _formatCurrency(_afterTaxInterest)},
+      {'label': '연 수익률(세전)', 'value': _formatPercent(_preTaxYield)},
+      {'label': '연 수익률(세후)', 'value': _formatPercent(_afterTaxYield)},
+      {'label': '총 지급금액(세후)', 'value': _formatCurrency(_totalPaymentAfterTax)},
     ];
 
     return Container(
@@ -244,7 +354,7 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
           const SizedBox(height: 12),
           _buildResultRow(
             '은행예금 환산수익률',
-            '0.00%',
+            _formatPercent(_bankEquivalentYield),
             theme: theme,
             isHighlight: true,
           ),
