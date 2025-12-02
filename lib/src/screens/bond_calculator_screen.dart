@@ -21,7 +21,7 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
   final TextEditingController _purchasePriceController =
       TextEditingController();
   final TextEditingController _sellPriceController =
-      TextEditingController(text: '0');
+      TextEditingController(text: '만기상환');
   String _selectedTaxRate = '기본(15.4%)';
   Bond? _selectedBond;
   bool _isEarlyRedemption = false;
@@ -95,7 +95,9 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
 
     if (_isEarlyRedemption && _sellDate != null) {
       // 중도상환인 경우
-      final sellPrice = double.tryParse(_sellPriceController.text) ?? 0;
+      final sellPriceText = _sellPriceController.text;
+      final sellPrice = sellPriceText == '만기상환' ? 0 : (double.tryParse(sellPriceText) ?? 0);
+      if (sellPrice == 0) return; // 매도 단가가 입력되지 않은 경우
       sellAmount = quantity * sellPrice;
       daysHeld = _sellDate!.difference(DateTime.now()).inDays;
     } else {
@@ -259,29 +261,46 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
             ),
             const SizedBox(height: 20),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Checkbox(
-                  value: _isEarlyRedemption,
-                  onChanged: (value) {
-                    setState(() {
-                      _isEarlyRedemption = value ?? false;
-                      if (!_isEarlyRedemption) {
-                        _sellDate = null;
-                        _sellPriceController.text = '0';
-                      }
-                    });
-                  },
-                  activeColor: AppColors.primary,
-                ),
-                Text(
-                  '중도상환',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
+                Expanded(
+                  child: Text(
+                    '매도일자',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Checkbox(
+                      value: _isEarlyRedemption,
+                      onChanged: (value) {
+                        setState(() {
+                          _isEarlyRedemption = value ?? false;
+                          if (!_isEarlyRedemption) {
+                            _sellDate = null;
+                            _sellPriceController.text = '만기상환';
+                          } else {
+                            _sellPriceController.text = '0';
+                          }
+                        });
+                      },
+                      activeColor: AppColors.primary,
+                    ),
+                    Text(
+                      '중도상환',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             _buildSellDateField(theme),
             const SizedBox(height: 20),
             _buildSellPriceField(theme),
@@ -401,55 +420,51 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
   }
 
   Widget _buildSellDateField(ThemeData theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          '매도일자',
-          style: theme.textTheme.bodySmall?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: AppColors.textSecondary,
-          ),
-        ),
-        const SizedBox(height: 8),
-        InkWell(
-          onTap: _isEarlyRedemption ? _selectSellDate : null,
+    String displayText;
+    if (_isEarlyRedemption) {
+      if (_sellDate != null) {
+        displayText = '${_sellDate!.year}.${_sellDate!.month.toString().padLeft(2, '0')}.${_sellDate!.day.toString().padLeft(2, '0')}';
+      } else {
+        displayText = '날짜 선택';
+      }
+    } else {
+      displayText = '만기상환';
+    }
+
+    return InkWell(
+      onTap: _isEarlyRedemption ? _selectSellDate : null,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        height: 56,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          color: _isEarlyRedemption ? AppColors.cardElevated : AppColors.card,
           borderRadius: BorderRadius.circular(14),
-          child: Container(
-            height: 56,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: _isEarlyRedemption ? AppColors.cardElevated : AppColors.card,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.border),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.calendar_today,
+              size: 18,
+              color: _isEarlyRedemption && _sellDate != null
+                  ? AppColors.primary
+                  : AppColors.textSecondary,
             ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.calendar_today,
-                  size: 18,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                displayText,
+                style: theme.textTheme.bodyLarge?.copyWith(
                   color: _isEarlyRedemption && _sellDate != null
-                      ? AppColors.primary
+                      ? Colors.white
                       : AppColors.textSecondary,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    _isEarlyRedemption && _sellDate != null
-                        ? '${_sellDate!.year}.${_sellDate!.month.toString().padLeft(2, '0')}.${_sellDate!.day.toString().padLeft(2, '0')}'
-                        : '만기상환',
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: _isEarlyRedemption && _sellDate != null
-                          ? Colors.white
-                          : AppColors.textSecondary,
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
+          ],
         ),
-      ],
+      ),
     );
   }
 
@@ -467,15 +482,17 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
         const SizedBox(height: 8),
         TextField(
           controller: _sellPriceController,
-          style: theme.textTheme.bodyLarge,
-          keyboardType: TextInputType.number,
+          style: theme.textTheme.bodyLarge?.copyWith(
+            color: _isEarlyRedemption ? Colors.white : AppColors.textSecondary,
+          ),
+          keyboardType: _isEarlyRedemption ? TextInputType.number : TextInputType.none,
           enabled: _isEarlyRedemption,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-          ],
+          inputFormatters: _isEarlyRedemption
+              ? [FilteringTextInputFormatter.digitsOnly]
+              : [],
           decoration: InputDecoration(
-            hintText: _isEarlyRedemption ? '0' : '만기상환',
-            suffixText: '원',
+            hintText: '0',
+            suffixText: _isEarlyRedemption ? '원' : null,
             suffixStyle: theme.textTheme.bodySmall,
             filled: true,
             fillColor: _isEarlyRedemption ? AppColors.cardElevated : AppColors.card,
