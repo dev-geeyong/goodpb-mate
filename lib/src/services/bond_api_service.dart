@@ -34,17 +34,33 @@ class BondApiService {
       if (maxSrfcInrt != null) queryParams['max_srfc_inrt'] = maxSrfcInrt.toString();
 
       final uri = Uri.parse('$baseUrl/bond-master-basic').replace(queryParameters: queryParams);
+
+      print('API Request: $uri'); // 디버깅용
+
       final response = await http.get(uri);
+
+      print('API Response Status: ${response.statusCode}'); // 디버깅용
+      print('API Response Body: ${response.body.substring(0, response.body.length > 500 ? 500 : response.body.length)}'); // 디버깅용
 
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
+
+        // success 필드 확인
+        if (jsonData['success'] != true) {
+          throw Exception('API returned success=false');
+        }
+
         final List<dynamic> bondList = jsonData['data'] ?? [];
+
+        print('Bonds count: ${bondList.length}'); // 디버깅용
 
         return bondList.map((item) => _parseBondFromApi(item)).toList();
       } else {
-        throw Exception('Failed to load bonds: ${response.statusCode}');
+        throw Exception('HTTP ${response.statusCode}: ${response.body}');
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('Error in fetchBonds: $e'); // 디버깅용
+      print('Stack trace: $stackTrace'); // 디버깅용
       throw Exception('Error fetching bonds: $e');
     }
   }

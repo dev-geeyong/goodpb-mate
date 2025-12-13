@@ -208,6 +208,8 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
                 if (selectedBond != null) {
                   setState(() {
                     _selectedBond = selectedBond;
+                    // 매수 단가를 표면이율로 자동 설정 (일반적으로 채권은 액면가 100 기준)
+                    _purchasePriceController.text = (10000 * (selectedBond.faceInterestRate / 100 + 1)).toStringAsFixed(0);
                   });
                 }
               },
@@ -516,7 +518,27 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
 
   List<Bond> _getRecommendedBonds() {
     // 현재 선택된 채권을 제외하고 3개 추천
+    // 신용등급이 비슷한 채권 우선 추천
     final allBonds = Bond.mockData.where((bond) => bond.id != _selectedBond?.id).toList();
+
+    if (_selectedBond != null && allBonds.isNotEmpty) {
+      // 같은 신용등급의 채권을 우선 추천
+      final sameCreditRating = allBonds
+          .where((bond) => bond.creditRating == _selectedBond!.creditRating)
+          .toList();
+
+      if (sameCreditRating.length >= 3) {
+        return sameCreditRating.take(3).toList();
+      }
+
+      // 신용등급이 같은 채권이 부족하면 나머지로 채움
+      final others = allBonds
+          .where((bond) => bond.creditRating != _selectedBond!.creditRating)
+          .toList();
+
+      return [...sameCreditRating, ...others].take(3).toList();
+    }
+
     return allBonds.take(3).toList();
   }
 
