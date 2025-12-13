@@ -17,7 +17,7 @@ class BondCalculatorScreen extends StatefulWidget {
 
 class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
   final TextEditingController _purchaseAmountController =
-      TextEditingController();
+      TextEditingController(text: '100000000');
   final TextEditingController _purchasePriceController =
       TextEditingController();
   final TextEditingController _sellPriceController =
@@ -376,7 +376,7 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
             _buildSectionHeader(
               context,
               title: '추천 채권',
-              subtitle: '비슷한 조건의 다른 채권을 확인해보세요.',
+              subtitle: '예금과 같이 안정성이 높은 채권의 수익률을 확인해보세요.',
             ),
             _buildRecommendedBonds(theme),
           ],
@@ -637,6 +637,7 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
       {'label': '연 수익률(세전)', 'value': _formatPercent(_preTaxYield)},
       {'label': '연 수익률(세후)', 'value': _formatPercent(_afterTaxYield)},
       {'label': '총 지급금액(세후)', 'value': _formatCurrency(_totalPaymentAfterTax)},
+      {'label': '최대주주', 'value': _selectedBond?.seller ?? '-'},
     ];
 
     return Container(
