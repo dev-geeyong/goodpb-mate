@@ -298,6 +298,10 @@ class _BondListScreenState extends State<BondListScreen> {
                                   setState(() {
                                     _selectedCreditRating = newValue;
                                   });
+                                  // 신용등급이 변경될 때마다 API 재조회
+                                  if (_useApi) {
+                                    _loadBonds();
+                                  }
                                 }
                               },
                             ),
