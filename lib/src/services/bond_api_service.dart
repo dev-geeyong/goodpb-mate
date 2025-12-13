@@ -21,6 +21,8 @@ class BondApiService {
     try {
       // 쿼리 파라미터 구성
       final queryParams = <String, String>{
+        'sort_by': 'pt_dt',
+        'sort_order': 'desc',
         'limit': limit.toString(),
         'offset': offset.toString(),
       };
@@ -54,7 +56,11 @@ class BondApiService {
 
         print('Bonds count: ${bondList.length}'); // 디버깅용
 
-        return bondList.map((item) => _parseBondFromApi(item)).toList();
+        // API 응답 구조: data 배열 안에 {index, data: {...}} 형식
+        return bondList.map((item) {
+          final bondData = item['data'] ?? item; // data 필드가 있으면 사용, 없으면 item 자체 사용
+          return _parseBondFromApi(bondData);
+        }).toList();
       } else {
         throw Exception('HTTP ${response.statusCode}: ${response.body}');
       }
@@ -67,16 +73,24 @@ class BondApiService {
 
   /// API 응답을 Bond 모델로 변환
   Bond _parseBondFromApi(Map<String, dynamic> json) {
+    // max_jj 배열에서 첫 번째 항목 추출 (최대주주)
+    String seller = '';
+    if (json['max_jj'] != null && json['max_jj'] is List && (json['max_jj'] as List).isNotEmpty) {
+      seller = json['max_jj'][0].toString();
+      // 괄호와 비율 제거 (예: "㈜파리크라상 (40.66%)" -> "㈜파리크라상")
+      seller = seller.split('(')[0].trim();
+    }
+
     return Bond(
       id: json['pdno'] ?? '',
       name: json['prdt_name'] ?? '',
-      securitiesCompanyName: json['exchange_company_name'] ?? '',
+      securitiesCompanyName: json['exchange_company_name'] ?? '-',
       securitiesCompanyLogo: 'assets/images/securities/default.png',
       maturityDate: _parseDate(json['expd_dt']),
       interestRate: _parseDouble(json['return_rate']) ?? 0.0,
       faceInterestRate: _parseDouble(json['srfc_inrt']) ?? 0.0,
       creditRating: json['credit_rating'] ?? '',
-      seller: json['exchange_company_name'] ?? '',
+      seller: seller.isNotEmpty ? seller : (json['exchange_company_name'] ?? '-'),
     );
   }
 
