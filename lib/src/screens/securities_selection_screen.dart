@@ -45,7 +45,7 @@ class _SecuritiesSelectionScreenState extends State<SecuritiesSelectionScreen> {
     if (mounted) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => const BondListScreen(),
+          builder: (context) => const BondListScreen(isStandalone: true),
         ),
       );
     }

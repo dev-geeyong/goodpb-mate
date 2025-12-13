@@ -9,7 +9,10 @@ import 'bond_calculator_screen.dart';
 
 /// 채권 목록 화면
 class BondListScreen extends StatefulWidget {
-  const BondListScreen({super.key});
+  const BondListScreen({super.key, this.isStandalone = false});
+
+  /// true인 경우 선택 시 계산기 화면으로 이동, false인 경우 선택 결과를 반환
+  final bool isStandalone;
 
   @override
   State<BondListScreen> createState() => _BondListScreenState();
@@ -348,17 +351,16 @@ class _BondListScreenState extends State<BondListScreen> {
                     child: BondListItem(
                       bond: bond,
                       onTap: () {
-                        // Check if this screen can pop (modal mode) or needs to navigate (standalone mode)
-                        if (Navigator.of(context).canPop()) {
-                          // Try to pop with result - if this screen was opened as a modal, it will return the bond
-                          Navigator.of(context).pop(bond);
-                        } else {
-                          // If it's a standalone page (from onboarding flow), navigate to calculator
+                        if (widget.isStandalone) {
+                          // Standalone mode: navigate to calculator
                           Navigator.of(context).pushReplacement(
                             MaterialPageRoute(
                               builder: (context) => BondCalculatorScreen(selectedBond: bond),
                             ),
                           );
+                        } else {
+                          // Modal mode: return selected bond
+                          Navigator.of(context).pop(bond);
                         }
                       },
                     ),
