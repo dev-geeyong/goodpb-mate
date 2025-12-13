@@ -79,8 +79,16 @@ class _BondListScreenState extends State<BondListScreen> {
         _allBonds = Bond.mockData;
       });
       if (mounted) {
+        // CORS 에러인 경우 더 친화적인 메시지 표시
+        final errorMessage = e.toString().contains('CORS') || e.toString().contains('Failed to fetch')
+            ? '샘플 데이터를 표시합니다'
+            : '채권 정보를 불러오는데 실패했습니다. 샘플 데이터를 표시합니다.';
+
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('채권 정보를 불러오는데 실패했습니다: $e')),
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: AppColors.card,
+          ),
         );
       }
     }
