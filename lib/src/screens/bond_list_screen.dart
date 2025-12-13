@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../models/bond.dart';
+import '../services/bond_api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/bond_list_item.dart';
 
@@ -18,6 +19,11 @@ class _BondListScreenState extends State<BondListScreen> {
   String _selectedCreditRating = '전체';
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  final BondApiService _apiService = BondApiService();
+
+  List<Bond> _allBonds = [];
+  bool _isLoading = false;
+  bool _useApi = true; // API 사용 여부 (true로 변경하여 실제 API 사용)
 
   final List<String> _creditRatings = [
     '전체',
@@ -33,13 +39,55 @@ class _BondListScreenState extends State<BondListScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _loadBonds();
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
   }
 
+  Future<void> _loadBonds() async {
+    if (!_useApi) {
+      // Mock 데이터 사용
+      setState(() {
+        _allBonds = Bond.mockData;
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final bonds = await _apiService.fetchBonds(
+        creditRating: _selectedCreditRating == '전체' ? null : _selectedCreditRating,
+        prdtName: _searchQuery.isEmpty ? null : _searchQuery,
+      );
+      setState(() {
+        _allBonds = bonds;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        // API 실패 시 mock 데이터로 fallback
+        _allBonds = Bond.mockData;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('채권 정보를 불러오는데 실패했습니다: $e')),
+        );
+      }
+    }
+  }
+
   List<Bond> get _filteredBonds {
-    return Bond.mockData.where((bond) {
+    return _allBonds.where((bond) {
       final matchesSearch = _searchQuery.isEmpty ||
           bond.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           bond.securitiesCompanyName
@@ -249,36 +297,46 @@ class _BondListScreenState extends State<BondListScreen> {
               ),
             ),
           ),
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                final filteredBonds = _filteredBonds;
-                if (filteredBonds.isEmpty) {
-                  return const Padding(
-                    padding: EdgeInsets.all(48.0),
-                    child: Center(
-                      child: Text(
-                        '검색 결과가 없습니다',
-                        style: TextStyle(color: Colors.white54),
+          if (_isLoading)
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.all(48.0),
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
+              ),
+            )
+          else
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final filteredBonds = _filteredBonds;
+                  if (filteredBonds.isEmpty) {
+                    return const Padding(
+                      padding: EdgeInsets.all(48.0),
+                      child: Center(
+                        child: Text(
+                          '검색 결과가 없습니다',
+                          style: TextStyle(color: Colors.white54),
+                        ),
                       ),
+                    );
+                  }
+                  final bond = filteredBonds[index];
+                  final isLast = index == filteredBonds.length - 1;
+                  return Padding(
+                    padding: EdgeInsets.fromLTRB(24, 0, 24, isLast ? 24 : 12),
+                    child: BondListItem(
+                      bond: bond,
+                      onTap: () {
+                        Navigator.of(context).pop(bond);
+                      },
                     ),
                   );
-                }
-                final bond = filteredBonds[index];
-                final isLast = index == filteredBonds.length - 1;
-                return Padding(
-                  padding: EdgeInsets.fromLTRB(24, 0, 24, isLast ? 24 : 12),
-                  child: BondListItem(
-                    bond: bond,
-                    onTap: () {
-                      Navigator.of(context).pop(bond);
-                    },
-                  ),
-                );
-              },
-              childCount: _filteredBonds.isEmpty ? 1 : _filteredBonds.length,
+                },
+                childCount: _filteredBonds.isEmpty ? 1 : _filteredBonds.length,
+              ),
             ),
-          ),
         ],
             ),
           ),
