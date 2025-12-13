@@ -222,6 +222,10 @@ class _BondListScreenState extends State<BondListScreen> {
                       setState(() {
                         _searchQuery = value;
                       });
+                      // 검색어가 변경될 때마다 API 재조회
+                      if (_useApi) {
+                        _loadBonds();
+                      }
                     },
                   ),
                   const SizedBox(height: 16),
