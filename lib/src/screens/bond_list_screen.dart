@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import '../models/bond.dart';
 import '../theme/app_theme.dart';
 import '../widgets/bond_list_item.dart';
-import 'bond_calculator_screen.dart';
 
 /// 채권 목록 화면
 class BondListScreen extends StatefulWidget {
@@ -102,14 +101,29 @@ class _BondListScreenState extends State<BondListScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.9,
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
         ),
       ),
-      body: CustomScrollView(
+      child: Column(
+        children: [
+          // 모달 핸들
+          Container(
+            margin: const EdgeInsets.only(top: 12, bottom: 8),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: AppColors.border,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          Expanded(
+            child: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
           SliverToBoxAdapter(
@@ -257,18 +271,15 @@ class _BondListScreenState extends State<BondListScreen> {
                   child: BondListItem(
                     bond: bond,
                     onTap: () {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (context) => BondCalculatorScreen(
-                            selectedBond: bond,
-                          ),
-                        ),
-                      );
+                      Navigator.of(context).pop(bond);
                     },
                   ),
                 );
               },
               childCount: _filteredBonds.isEmpty ? 1 : _filteredBonds.length,
+            ),
+          ),
+        ],
             ),
           ),
         ],

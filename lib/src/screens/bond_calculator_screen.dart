@@ -199,10 +199,11 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
             ),
             InkWell(
               onTap: () async {
-                final selectedBond = await Navigator.of(context).push<Bond>(
-                  MaterialPageRoute(
-                    builder: (context) => const BondListScreen(),
-                  ),
+                final selectedBond = await showModalBottomSheet<Bond>(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) => const BondListScreen(),
                 );
                 if (selectedBond != null) {
                   setState(() {
