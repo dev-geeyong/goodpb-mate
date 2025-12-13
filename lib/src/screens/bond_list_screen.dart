@@ -5,6 +5,7 @@ import '../models/bond.dart';
 import '../services/bond_api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/bond_list_item.dart';
+import 'bond_calculator_screen.dart';
 
 /// 채권 목록 화면
 class BondListScreen extends StatefulWidget {
@@ -347,7 +348,18 @@ class _BondListScreenState extends State<BondListScreen> {
                     child: BondListItem(
                       bond: bond,
                       onTap: () {
-                        Navigator.of(context).pop(bond);
+                        // Check if this screen can pop (modal mode) or needs to navigate (standalone mode)
+                        if (Navigator.of(context).canPop()) {
+                          // Try to pop with result - if this screen was opened as a modal, it will return the bond
+                          Navigator.of(context).pop(bond);
+                        } else {
+                          // If it's a standalone page (from onboarding flow), navigate to calculator
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                              builder: (context) => BondCalculatorScreen(selectedBond: bond),
+                            ),
+                          );
+                        }
                       },
                     ),
                   );
