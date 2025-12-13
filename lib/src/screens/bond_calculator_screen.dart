@@ -705,18 +705,26 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: isHighlight ? AppColors.accent : AppColors.textSecondary,
-              fontWeight: isHighlight ? FontWeight.w700 : FontWeight.w500,
+          Expanded(
+            flex: 3,
+            child: Text(
+              label,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: isHighlight ? AppColors.accent : AppColors.textSecondary,
+                fontWeight: isHighlight ? FontWeight.w700 : FontWeight.w500,
+              ),
             ),
           ),
-          Text(
-            value,
-            style: theme.textTheme.bodyLarge?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: isHighlight ? AppColors.accent : Colors.white,
+          const SizedBox(width: 8),
+          Expanded(
+            flex: 4,
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: isHighlight ? AppColors.accent : Colors.white,
+              ),
             ),
           ),
         ],
