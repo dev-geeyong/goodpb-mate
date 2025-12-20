@@ -16,14 +16,16 @@ class BondApiService {
     int? maxRemainDays,
     double? minSrfcInrt,
     double? maxSrfcInrt,
+    String sortBy = 'return_rate',
+    String sortOrder = 'desc',
     int limit = 100,
     int offset = 0,
   }) async {
     try {
       // 쿼리 파라미터 구성
       final queryParams = <String, String>{
-        'sort_by': 'pt_dt',
-        'sort_order': 'desc',
+        'sort_by': sortBy,
+        'sort_order': sortOrder,
         'limit': limit.toString(),
         'offset': offset.toString(),
       };
