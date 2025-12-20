@@ -228,8 +228,8 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
                 if (selectedBond != null) {
                   setState(() {
                     _selectedBond = selectedBond;
-                    // 매수 단가를 표면이율로 자동 설정 (일반적으로 채권은 액면가 100 기준)
-                    _purchasePriceController.text = (10000 * (selectedBond.faceInterestRate / 100 + 1)).toStringAsFixed(0);
+                    // 매수 단가를 액면가로 설정 (채권 액면가는 일반적으로 10,000원)
+                    _purchasePriceController.text = '10000';
                   });
                 }
               },
