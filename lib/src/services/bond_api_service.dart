@@ -5,7 +5,7 @@ import '../models/bond_calculation_result.dart';
 
 /// 채권 API 서비스
 class BondApiService {
-  static const String baseUrl = 'http://13.124.234.154:8888';
+  static const String baseUrl = 'https://api.alphabondkorea.com';
 
   /// 채권마스터 기본정보 조회
   Future<List<Bond>> fetchBonds({
