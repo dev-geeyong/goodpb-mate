@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 
 import '../models/bond.dart';
+import '../services/bond_api_service.dart';
 import '../theme/app_theme.dart';
 import 'bond_list_screen.dart';
 
@@ -27,6 +29,10 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
   bool _isEarlyRedemption = false;
   DateTime? _sellDate;
 
+  final BondApiService _apiService = BondApiService();
+  bool _isCalculating = false;
+  String? _errorMessage;
+
   // 계산 결과
   double _actualInvestment = 0;
   double _preTaxProfit = 0;
@@ -36,6 +42,8 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
   double _afterTaxYield = 0;
   double _totalPaymentAfterTax = 0;
   double _bankEquivalentYield = 0;
+  double _interestIncome = 0;
+  double _capitalIncome = 0;
 
   final List<String> _taxRates = [
     '기본(15.4%)',
@@ -74,7 +82,7 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
     }
   }
 
-  void _calculate() {
+  Future<void> _calculate() async {
     final purchaseAmount = double.tryParse(_purchaseAmountController.text) ?? 0;
     final purchasePrice = double.tryParse(_purchasePriceController.text) ?? 0;
 
@@ -82,57 +90,69 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
       return;
     }
 
-    final taxRate = _getTaxRateValue();
-    final faceValue = 10000.0; // 액면가
-    final quantity = purchaseAmount / faceValue; // 매수 수량
+    setState(() {
+      _isCalculating = true;
+      _errorMessage = null;
+    });
 
-    // 실 투자금 = 매수금액 * 매수단가 / 100
-    _actualInvestment = quantity * purchasePrice;
+    try {
+      final taxRate = _getTaxRateValue();
 
-    // 중도상환 여부에 따른 계산
-    double sellAmount;
-    int daysHeld;
+      // 매도 정보 준비
+      String? sellDateStr;
+      double? sellPrice;
 
-    if (_isEarlyRedemption && _sellDate != null) {
-      // 중도상환인 경우
-      final sellPriceText = _sellPriceController.text;
-      final sellPrice = sellPriceText == '만기상환' ? 0 : (double.tryParse(sellPriceText) ?? 0);
-      if (sellPrice == 0) return; // 매도 단가가 입력되지 않은 경우
-      sellAmount = quantity * sellPrice;
-      daysHeld = _sellDate!.difference(DateTime.now()).inDays;
-    } else {
-      // 만기상환인 경우
-      sellAmount = purchaseAmount; // 액면가로 상환
-      daysHeld = _selectedBond!.maturityDate.difference(DateTime.now()).inDays;
+      if (_isEarlyRedemption && _sellDate != null) {
+        // 중도매도인 경우
+        final dateFormat = DateFormat('yyyyMMdd');
+        sellDateStr = dateFormat.format(_sellDate!);
+
+        final sellPriceText = _sellPriceController.text;
+        if (sellPriceText != '만기상환') {
+          sellPrice = double.tryParse(sellPriceText);
+        }
+      }
+
+      // API 호출
+      final result = await _apiService.calculateBond(
+        pdno: _selectedBond!.id,
+        amountWon: purchaseAmount,
+        incomeTaxRate: taxRate,
+        buyPrice: purchasePrice,
+        sellPrice: sellPrice,
+        sellDate: sellDateStr,
+      );
+
+      // 결과 반영
+      setState(() {
+        _actualInvestment = result.realInvestment;
+        _interestIncome = result.interestIncome;
+        _capitalIncome = result.capitalIncome;
+        _preTaxProfit = result.beforeTaxInterest;
+        _tax = result.comprehensiveTax;
+        _afterTaxInterest = result.afterTaxComprehensive;
+        _preTaxYield = result.beforeTaxRate;
+        _afterTaxYield = result.afterTaxRate;
+        _totalPaymentAfterTax = result.totalAmount;
+        _bankEquivalentYield = result.depositEquivalentRate;
+        _isCalculating = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'API 계산 오류: $e';
+        _isCalculating = false;
+      });
+
+      // 에러 메시지 표시
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('계산 중 오류가 발생했습니다: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
-
-    // 세전 수익 = 매도금액 - 실투자금
-    _preTaxProfit = sellAmount - _actualInvestment;
-
-    // 세금 = 세전수익 * 세율
-    _tax = _preTaxProfit * taxRate;
-
-    // 세후 이자 = 세전수익 - 세금
-    _afterTaxInterest = _preTaxProfit - _tax;
-
-    // 보유 기간 (년)
-    final yearsHeld = daysHeld / 365.0;
-
-    if (yearsHeld > 0) {
-      // 연 수익률(세전) = (세전수익 / 실투자금) / 년수 * 100
-      _preTaxYield = (_preTaxProfit / _actualInvestment) / yearsHeld * 100;
-
-      // 연 수익률(세후) = (세후이자 / 실투자금) / 년수 * 100
-      _afterTaxYield = (_afterTaxInterest / _actualInvestment) / yearsHeld * 100;
-
-      // 은행예금 환산수익률 = 세후 연수익률 / (1 - 0.154)
-      _bankEquivalentYield = _afterTaxYield / (1 - 0.154);
-    }
-
-    // 총 지급금액(세후) = 실투자금 + 세후이자
-    _totalPaymentAfterTax = _actualInvestment + _afterTaxInterest;
-
-    setState(() {});
   }
 
   @override
@@ -350,7 +370,7 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
               width: double.infinity,
               height: 56,
               child: ElevatedButton(
-                onPressed: _calculate,
+                onPressed: _isCalculating ? null : _calculate,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
@@ -359,13 +379,22 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
                   ),
                   elevation: 0,
                 ),
-                child: Text(
-                  '계산하기',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
+                child: _isCalculating
+                    ? const SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : Text(
+                        '계산하기',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
               ),
             ),
             const SizedBox(height: 32),
@@ -654,6 +683,8 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
   Widget _buildResultSection(ThemeData theme) {
     final rows = <Map<String, String>>[
       {'label': '실 투자금', 'value': _formatCurrency(_actualInvestment)},
+      {'label': '이자 수익', 'value': _formatCurrency(_interestIncome)},
+      {'label': '자본 수익', 'value': _formatCurrency(_capitalIncome)},
       {'label': '세전 수익', 'value': _formatCurrency(_preTaxProfit)},
       {'label': '세금', 'value': _formatCurrency(_tax)},
       {'label': '세후 이자', 'value': _formatCurrency(_afterTaxInterest)},

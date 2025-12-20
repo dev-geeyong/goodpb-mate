@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/bond.dart';
+import '../models/bond_calculation_result.dart';
 
 /// 채권 API 서비스
 class BondApiService {
@@ -118,5 +119,55 @@ class BondApiService {
     if (value is int) return value.toDouble();
     if (value is String) return double.tryParse(value);
     return null;
+  }
+
+  /// 채권 투자 수익 계산
+  Future<BondCalculationResult> calculateBond({
+    required String pdno, // 상품번호
+    required double amountWon, // 매수금액(원)
+    required double incomeTaxRate, // 종합소득 세율 (0~1)
+    required double buyPrice, // 매수단가(원)
+    String? buyDate, // 매수일자 (YYYYMMDD), null이면 오늘
+    double? sellPrice, // 매도단가(원), null이면 10000
+    String? sellDate, // 매도일자 (YYYYMMDD), null이면 만기일
+  }) async {
+    try {
+      // 쿼리 파라미터 구성
+      final queryParams = <String, String>{
+        'pdno': pdno,
+        'amount_won': amountWon.toString(),
+        'income_tax_rate': incomeTaxRate.toString(),
+        'buy_price': buyPrice.toString(),
+      };
+
+      if (buyDate != null) queryParams['buy_date'] = buyDate;
+      if (sellPrice != null) queryParams['sell_price'] = sellPrice.toString();
+      if (sellDate != null) queryParams['sell_date'] = sellDate;
+
+      final uri = Uri.parse('$baseUrl/bond-calculation').replace(queryParameters: queryParams);
+
+      print('Calculation API Request: $uri'); // 디버깅용
+
+      final response = await http.get(uri);
+
+      print('Calculation API Response Status: ${response.statusCode}'); // 디버깅용
+      print('Calculation API Response Body: ${response.body}'); // 디버깅용
+
+      if (response.statusCode == 200) {
+        final jsonData = json.decode(response.body);
+
+        if (jsonData['success'] != true) {
+          throw Exception('API returned success=false: ${jsonData['message']}');
+        }
+
+        return BondCalculationResult.fromJson(jsonData);
+      } else {
+        throw Exception('HTTP ${response.statusCode}: ${response.body}');
+      }
+    } catch (e, stackTrace) {
+      print('Error in calculateBond: $e'); // 디버깅용
+      print('Stack trace: $stackTrace'); // 디버깅용
+      throw Exception('Error calculating bond: $e');
+    }
   }
 }
