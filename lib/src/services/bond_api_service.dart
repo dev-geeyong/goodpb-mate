@@ -76,12 +76,11 @@ class BondApiService {
 
   /// API 응답을 Bond 모델로 변환
   Bond _parseBondFromApi(Map<String, dynamic> json) {
-    // max_jj 배열에서 첫 번째 항목 추출 (최대주주)
+    // max_jj 배열에서 첫 번째 항목 추출 (최대주주와 지분율)
     String seller = '';
     if (json['max_jj'] != null && json['max_jj'] is List && (json['max_jj'] as List).isNotEmpty) {
+      // 지분율 포함된 전체 문자열 사용 (예: "㈜파리크라상 (40.66%)")
       seller = json['max_jj'][0].toString();
-      // 괄호와 비율 제거 (예: "㈜파리크라상 (40.66%)" -> "㈜파리크라상")
-      seller = seller.split('(')[0].trim();
     }
 
     return Bond(

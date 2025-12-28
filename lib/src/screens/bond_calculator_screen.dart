@@ -7,6 +7,35 @@ import '../services/bond_api_service.dart';
 import '../theme/app_theme.dart';
 import 'bond_list_screen.dart';
 
+/// 천단위 콤마 입력 포맷터
+class ThousandsSeparatorInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    if (newValue.text.isEmpty) {
+      return newValue;
+    }
+
+    // 숫자만 추출
+    final digits = newValue.text.replaceAll(RegExp(r'[^\d]'), '');
+
+    if (digits.isEmpty) {
+      return TextEditingValue.empty;
+    }
+
+    // 천단위 콤마 추가
+    final formatter = NumberFormat('#,###');
+    final formattedText = formatter.format(int.parse(digits));
+
+    return TextEditingValue(
+      text: formattedText,
+      selection: TextSelection.collapsed(offset: formattedText.length),
+    );
+  }
+}
+
 /// 알파본드 채권 계산기 화면
 class BondCalculatorScreen extends StatefulWidget {
   const BondCalculatorScreen({super.key, this.selectedBond});
@@ -19,7 +48,7 @@ class BondCalculatorScreen extends StatefulWidget {
 
 class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
   final TextEditingController _purchaseAmountController =
-      TextEditingController(text: '100000000');
+      TextEditingController(text: '100,000,000');
   final TextEditingController _purchasePriceController =
       TextEditingController();
   final TextEditingController _sellPriceController =
@@ -83,8 +112,9 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
   }
 
   Future<void> _calculate() async {
-    final purchaseAmount = double.tryParse(_purchaseAmountController.text) ?? 0;
-    final purchasePrice = double.tryParse(_purchasePriceController.text) ?? 0;
+    // 콤마 제거 후 파싱
+    final purchaseAmount = double.tryParse(_purchaseAmountController.text.replaceAll(',', '')) ?? 0;
+    final purchasePrice = double.tryParse(_purchasePriceController.text.replaceAll(',', '')) ?? 0;
 
     if (purchaseAmount == 0 || purchasePrice == 0 || _selectedBond == null) {
       return;
@@ -440,6 +470,7 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
           keyboardType: TextInputType.number,
           inputFormatters: [
             FilteringTextInputFormatter.digitsOnly,
+            ThousandsSeparatorInputFormatter(),
           ],
           decoration: InputDecoration(
             hintText: hintText,
@@ -683,6 +714,7 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
   Widget _buildResultSection(ThemeData theme) {
     final rows = <Map<String, String>>[
       {'label': '실 투자금', 'value': _formatCurrency(_actualInvestment)},
+      {'label': '표면이율', 'value': _selectedBond != null ? '${_selectedBond!.faceInterestRate.toStringAsFixed(3)}%' : '-'},
       {'label': '이자 수익', 'value': _formatCurrency(_interestIncome)},
       {'label': '자본 수익', 'value': _formatCurrency(_capitalIncome)},
       {'label': '세전 수익', 'value': _formatCurrency(_preTaxProfit)},

@@ -109,7 +109,11 @@ class _BondListScreenState extends State<BondListScreen> {
       final matchesCreditRating = _selectedCreditRating == '전체' ||
           bond.creditRating == _selectedCreditRating;
 
-      return matchesSearch && matchesCreditRating;
+      final matchesDateRange = _selectedDateRange == null ||
+          (bond.maturityDate.isAfter(_selectedDateRange!.start.subtract(const Duration(days: 1))) &&
+              bond.maturityDate.isBefore(_selectedDateRange!.end.add(const Duration(days: 1))));
+
+      return matchesSearch && matchesCreditRating && matchesDateRange;
     }).toList();
   }
 

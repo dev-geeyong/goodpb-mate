@@ -67,7 +67,7 @@ class BondListItem extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    '판매사 ${bond.seller}',
+                    '최대주주 ${bond.seller}',
                     style: theme.textTheme.bodySmall,
                   ),
                 ],
