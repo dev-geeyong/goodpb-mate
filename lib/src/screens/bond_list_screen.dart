@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../models/bond.dart';
+import '../models/securities_company.dart';
 import '../services/bond_api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/bond_list_item.dart';
@@ -9,10 +10,17 @@ import 'bond_calculator_screen.dart';
 
 /// 채권 목록 화면
 class BondListScreen extends StatefulWidget {
-  const BondListScreen({super.key, this.isStandalone = false});
+  const BondListScreen({
+    super.key,
+    this.isStandalone = false,
+    this.selectedSecurities = const [],
+  });
 
   /// true인 경우 선택 시 계산기 화면으로 이동, false인 경우 선택 결과를 반환
   final bool isStandalone;
+
+  /// 선택된 증권사 ID 리스트
+  final List<String> selectedSecurities;
 
   @override
   State<BondListScreen> createState() => _BondListScreenState();
@@ -113,7 +121,18 @@ class _BondListScreenState extends State<BondListScreen> {
           (bond.maturityDate.isAfter(_selectedDateRange!.start.subtract(const Duration(days: 1))) &&
               bond.maturityDate.isBefore(_selectedDateRange!.end.add(const Duration(days: 1))));
 
-      return matchesSearch && matchesCreditRating && matchesDateRange;
+      // 선택된 증권사가 있으면 해당 증권사의 채권만 표시
+      final matchesSecurities = widget.selectedSecurities.isEmpty ||
+          widget.selectedSecurities.any((secId) {
+            final company = SecuritiesCompany.samples.firstWhere(
+              (s) => s.id == secId,
+              orElse: () => const SecuritiesCompany(id: '', name: '', imagePath: ''),
+            );
+            return bond.securitiesCompanyName.contains(company.name) ||
+                company.name.contains(bond.securitiesCompanyName);
+          });
+
+      return matchesSearch && matchesCreditRating && matchesDateRange && matchesSecurities;
     }).toList();
   }
 

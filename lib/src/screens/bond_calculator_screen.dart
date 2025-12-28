@@ -81,6 +81,8 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
     '26.4%',
     '38.5%',
     '41.8%',
+    '44%',
+    '46.4%',
     '49.5%',
   ];
 
@@ -104,6 +106,10 @@ class _BondCalculatorScreenState extends State<BondCalculatorScreen> {
         return 0.385;
       case '41.8%':
         return 0.418;
+      case '44%':
+        return 0.44;
+      case '46.4%':
+        return 0.464;
       case '49.5%':
         return 0.495;
       default:
